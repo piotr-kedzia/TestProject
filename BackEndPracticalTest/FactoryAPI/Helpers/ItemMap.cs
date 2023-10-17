@@ -14,7 +14,7 @@ namespace FactoryAPI.Helpers
 
             return itemDto;
         }
-        public static Item DtoToItem(ItemDto itemDto, Item item = null)
+        public static Item DtoToItem(ItemDto itemDto, Item? item = null)
         {
             item ??= new Item();
             item.Id = itemDto.Id;

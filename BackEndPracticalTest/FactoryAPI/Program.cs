@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using Dapper;
 using FactoryAPI.Repository;
 using FactoryAPI.Services;
+using FactoryAPI.MiddlewareExtentions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,7 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
-
+app.ConfigureExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

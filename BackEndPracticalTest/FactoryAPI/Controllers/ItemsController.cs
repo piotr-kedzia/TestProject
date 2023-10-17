@@ -1,82 +1,63 @@
 ﻿using Dapper;
 using FactoryAPI.Models;
-using FactoryAPI.Repository;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using FactoryAPI.Repository;
 using FactoryAPI.Services;
 
 namespace FactoryAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-
-
+    [ApiController] // model validated by controller
     public class ItemsController : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly IItemRepository _itemRepository;
         private readonly IItemService _itemService;
 
-
-        public ItemsController(IConfiguration config, IItemRepository itemRepository, IItemService itemService)
+        public ItemsController(IConfiguration config, IItemService itemService)
         {
             _config = config;
-            _itemRepository = itemRepository;
             _itemService = itemService;
-            
         }
-
-
 
     // Create a new item
     [HttpPost]
         public async Task<IActionResult> CreateItem([FromBody] ItemDto item)
         {
-            using var connection = new SqlConnection(_config.GetConnectionString("FactoryDatabase"));
-            var newItem = await connection.ExecuteAsync("INSERT INTO Items (Name, Description, Price) VALUES (@Name, @Description,@Price)", item);
+
+            _itemService.Create(item);
             return Ok();
+
         }
 
         // Retrieve a single item
         [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> GetSingle([FromRoute] int id) 
+        [Route("{ID}")]
+        public async Task<IActionResult> GetSingle([FromRoute] int ID) 
         {
-            using var connection = new SqlConnection(_config.GetConnectionString("FactoryDatabase"));
-            var item = await connection.QueryAsync<Item>("SELECT * FROM Items WHERE ID is = @ID", new { Id = id});
-            return Ok(item); //zwrócic Item
+            var getSingle = await _itemService.GetSingle(ID);
+            return Ok(getSingle);
         }
-
         // Retrieve all items (only if you'll be using an ORM framework)
         [HttpGet]
-        public async Task<IActionResult>GetAll(ItemService itemService)
+        public async Task<IActionResult>GetAll()
         {
-            var getAllItems = itemService.GetAll;
+            var getAllItems = await _itemService.GetAll();
             return Ok(getAllItems);
         }
-
-
         // Update an existing item
         [HttpPut]
-        public async Task<IActionResult> Update([FromBody] ItemDto item)
+        public async Task<IActionResult> Update([FromBody] Item item)
         {
-            using var connection = new SqlConnection(_config.GetConnectionString("FactoryDatabase"));
-            var newItem = await connection.ExecuteAsync("UPDATE Items SET Name = @Name, Description = @Description, Price = @Price WHERE ID = @ID)", item);
-            return Ok();
+            var uptadeItem = await _itemService.Update(item);
+            return Ok(uptadeItem);
         }
-
         // Delete an item
         [HttpDelete]
         [Route("{ID}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<IActionResult> Delete([FromRoute] int ID)
         {
-            using var connection = new SqlConnection(_config.GetConnectionString("FactoryDatabase"));
-            await connection.ExecuteAsync("DELETE FROM Items WHERE ID = @ID", new { ID = id });
-            return NoContent();
+            await _itemService.Delete(ID);                       
+            return Ok();
         }
-
     }
 }
